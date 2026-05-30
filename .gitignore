@@ -1,0 +1,7 @@
+# ===== ENV =====
+.venv/
+
+
+# ===== PYTHON =====
+__pycache__/
+*.pyc
