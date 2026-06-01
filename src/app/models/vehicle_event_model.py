@@ -2,6 +2,7 @@ from sqlalchemy import (
     BigInteger,
     Column,
     ForeignKey,
+    Integer,
     Numeric,
     String,
     TIMESTAMP
@@ -31,8 +32,9 @@ class VehicleEvent(Base):
         String(20)
     )
 
-    vehicle_type = Column(
-        String(50)
+    vehicle_type_id = Column(
+        Integer,
+        ForeignKey("vehicle_types.id")
     )
 
     event_type = Column(

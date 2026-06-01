@@ -32,7 +32,11 @@ main = app
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "http://192.168.1.109:5173",
         "http://localhost:5173",
+        "http://localhost",
+        "capacitor://localhost",
+        "ionic://localhost"
     ],
     allow_credentials=True,
     allow_methods=["*"],
