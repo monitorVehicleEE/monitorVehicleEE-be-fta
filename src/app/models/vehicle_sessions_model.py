@@ -19,11 +19,6 @@ class VehicleSession(BaseEntity):
         primary_key=True
     )
 
-    vehicle_id = Column(
-        BigInteger,
-        ForeignKey("vehicles.id")
-    )
-
     plate = Column(
         String(20)
     )

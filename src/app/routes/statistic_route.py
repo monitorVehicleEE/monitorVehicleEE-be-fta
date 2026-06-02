@@ -62,6 +62,7 @@ def get_daily(
     start_date: date | None = None,
     end_date: date | None = None,
     limit: int = 7,
+    group_by: str = "day",
     db=Depends(get_db)
 ):
     if end_date is None:
@@ -72,6 +73,52 @@ def get_daily(
         start_date = end_date - timedelta(days=days - 1)
     else:
         days = max((end_date - start_date).days + 1, 1)
+
+    if group_by == "month":
+        month_expr = func.date_trunc("month", VehicleEvent.event_time).label("event_month")
+        rows = (
+            db.query(
+                month_expr,
+                VehicleEvent.vehicle_type_id,
+                func.count(VehicleEvent.id)
+            )
+            .filter(func.date(VehicleEvent.event_time) >= start_date)
+            .filter(func.date(VehicleEvent.event_time) <= end_date)
+            .filter(VehicleEvent.status != "PENDING")
+            .group_by(
+                month_expr,
+                VehicleEvent.vehicle_type_id
+            )
+            .all()
+        )
+
+        stats = {}
+        current_month = start_date.replace(day=1)
+        end_month = end_date.replace(day=1)
+
+        while current_month <= end_month:
+            key = current_month.strftime("%Y-%m")
+            stats[key] = {
+                "date": key,
+                "total": 0,
+                "by_type": {}
+            }
+
+            if current_month.month == 12:
+                current_month = current_month.replace(
+                    year=current_month.year + 1,
+                    month=1
+                )
+            else:
+                current_month = current_month.replace(month=current_month.month + 1)
+
+        for event_month, vehicle_type_id, count in rows:
+            key = event_month.strftime("%Y-%m")
+            type_key = vehicle_type_id or "unknown"
+            stats[key]["total"] += count
+            stats[key]["by_type"][type_key] = count
+
+        return list(stats.values())
 
     rows = (
         db.query(

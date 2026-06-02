@@ -14,9 +14,25 @@ class VehicleSessionService:
             .get_open_session(plate.strip().upper())
         )
 
+    def find_all(
+        self,
+        plate: str | None = None,
+        status: str | None = None,
+        skip: int = 0,
+        limit: int | None = None
+    ):
+        normalized_plate = plate.strip().upper() if plate else None
+        normalized_status = status.strip().upper() if status else None
+
+        return self.vehicle_session_repository.find_all(
+            plate=normalized_plate,
+            status=normalized_status,
+            skip=skip,
+            limit=limit
+        )
+
     def create(self, request):
         session = VehicleSession(
-            vehicle_id=getattr(request, "vehicle_id", None),
             plate=request.plate.strip().upper() if request.plate else None,
             in_event_id=getattr(request, "in_event_id", None),
             out_event_id=getattr(request, "out_event_id", None),
@@ -36,13 +52,11 @@ class VehicleSessionService:
     def create_open_session(
         self,
         plate: str,
-        vehicle_id=None,
         in_event_id=None,
         in_camera_id=None,
         in_time=None
     ):
         session = VehicleSession(
-            vehicle_id=vehicle_id,
             plate=plate.strip().upper(),
             in_event_id=in_event_id,
             in_camera_id=in_camera_id,

@@ -4,7 +4,6 @@ from pydantic import BaseModel, ConfigDict
 
 
 class VehicleSessionCreate(BaseModel):
-    vehicle_id: int | None = None
     plate: str | None = None
     in_event_id: int | None = None
     out_event_id: int | None = None

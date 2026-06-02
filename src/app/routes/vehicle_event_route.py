@@ -52,16 +52,23 @@ def get_vehicle_events(
 
 
 @router.get("/live-feed")
-def get_live_feed(db=Depends(get_db)):
-    return get_service(db).live_feed()
+def get_live_feed(
+    camera_id: int | None = None,
+    db=Depends(get_db)
+):
+    return get_service(db).live_feed(camera_id=camera_id)
 
 
 @router.get("/pending")
 def get_pending_events(
     limit: int = 20,
+    camera_id: int | None = None,
     db=Depends(get_db)
 ):
-    return get_service(db).find_pending(limit)
+    return get_service(db).find_pending(
+        limit=limit,
+        camera_id=camera_id
+    )
 
 
 @router.get("/plate/{plate}", response_model=list[VehicleEventResponse])

@@ -75,23 +75,45 @@ class VehicleEventRepository:
 
         return query.all()
 
-    def find_pending(self, limit: int = 20):
-        return (
+    def find_pending(
+        self,
+        limit: int = 20,
+        camera_id: int | None = None
+    ):
+        query = (
             self.db.query(VehicleEvent)
             .filter(VehicleEvent.status == "PENDING")
+        )
+
+        if camera_id is not None:
+            query = query.filter(VehicleEvent.camera_id == camera_id)
+
+        return (
+            query
             .order_by(VehicleEvent.event_time.desc())
             .limit(limit)
             .all()
         )
 
-    def find_recent_approved(self, limit: int = 10):
-        return (
+    def find_recent_approved(
+        self,
+        limit: int = 10,
+        camera_id: int | None = None
+    ):
+        query = (
             self.db.query(VehicleEvent)
             .filter(
                 VehicleEvent.status.in_(
                     ["AUTO_APPROVED", "MANUAL_APPROVED"]
                 )
             )
+        )
+
+        if camera_id is not None:
+            query = query.filter(VehicleEvent.camera_id == camera_id)
+
+        return (
+            query
             .order_by(VehicleEvent.event_time.desc())
             .limit(limit)
             .all()

@@ -2,11 +2,14 @@ import os
 from datetime import datetime
 
 from src.app.models.vehicle_event_model import VehicleEvent
+from src.app.repositories.vehicle_session_repo import VehicleSessionRepository
+from src.app.services.vehicle_session_service import VehicleSessionService
 
 EVENT_DEDUPE_SECONDS = int(os.getenv("VEHICLE_EVENT_DEDUPE_SECONDS", "30"))
 NO_PLATE_EVENT_DEDUPE_SECONDS = int(
     os.getenv("VEHICLE_EVENT_NO_PLATE_DEDUPE_SECONDS", "5")
 )
+SESSION_APPROVED_STATUSES = {"AUTO_APPROVED", "MANUAL_APPROVED"}
 
 
 class VehicleEventService:
@@ -27,6 +30,9 @@ class VehicleEventService:
 
     def __init__(self, vehicle_event_repository):
         self.vehicle_event_repository = vehicle_event_repository
+        self.vehicle_session_service = VehicleSessionService(
+            VehicleSessionRepository(vehicle_event_repository.db)
+        )
 
     def _parse_vehicle_type_id(self, vehicle_type: str | None):
         if not vehicle_type:
@@ -69,14 +75,69 @@ class VehicleEventService:
             limit=limit
         )
 
-    def find_pending(self, limit: int = 20):
-        return self.vehicle_event_repository.find_pending(limit)
+    def find_pending(
+        self,
+        limit: int = 20,
+        camera_id: int | None = None
+    ):
+        return self.vehicle_event_repository.find_pending(
+            limit=limit,
+            camera_id=camera_id
+        )
 
-    def live_feed(self):
+    def live_feed(self, camera_id: int | None = None):
         return {
-            "approved": self.vehicle_event_repository.find_recent_approved(10),
-            "pending": self.vehicle_event_repository.find_pending(20)
+            "approved": self.vehicle_event_repository.find_recent_approved(
+                limit=10,
+                camera_id=camera_id
+            ),
+            "pending": self.vehicle_event_repository.find_pending(
+                limit=20,
+                camera_id=camera_id
+            )
         }
+
+    def _sync_vehicle_session(self, event: VehicleEvent):
+        if (
+            not event
+            or not event.plate
+            or event.status not in SESSION_APPROVED_STATUSES
+        ):
+            return None
+
+        event_type = (event.event_type or "").strip().upper()
+
+        if event_type == "IN":
+            open_session = self.vehicle_session_service.get_open_session(
+                event.plate
+            )
+
+            if open_session:
+                return open_session
+
+            return self.vehicle_session_service.create_open_session(
+                plate=event.plate,
+                in_event_id=event.id,
+                in_camera_id=event.camera_id,
+                in_time=event.event_time
+            )
+
+        if event_type == "OUT":
+            open_session = self.vehicle_session_service.get_open_session(
+                event.plate
+            )
+
+            if not open_session:
+                return None
+
+            return self.vehicle_session_service.close_session(
+                plate=event.plate,
+                out_event_id=event.id,
+                out_camera_id=event.camera_id,
+                out_time=event.event_time
+            )
+
+        return None
 
     def update(self, event_id: int, request, default_status: str | None = None):
         event = self.vehicle_event_repository.get_by_id(event_id)
@@ -97,7 +158,10 @@ class VehicleEventService:
         if status:
             event.status = status
 
-        return self.vehicle_event_repository.update(event)
+        updated_event = self.vehicle_event_repository.update(event)
+        self._sync_vehicle_session(updated_event)
+
+        return updated_event
 
     def approve(self, event_id: int, request):
         return self.update(
@@ -148,7 +212,7 @@ class VehicleEventService:
             event_time=getattr(request, "event_time", None) or datetime.now()
         )
 
-        return (
-            self.vehicle_event_repository
-            .create(event)
-        )
+        created_event = self.vehicle_event_repository.create(event)
+        self._sync_vehicle_session(created_event)
+
+        return created_event

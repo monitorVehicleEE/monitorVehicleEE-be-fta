@@ -15,6 +15,32 @@ class VehicleSessionRepository:
 
         return session
 
+    def find_all(
+        self,
+        plate: str | None = None,
+        status: str | None = None,
+        skip: int = 0,
+        limit: int | None = None
+    ):
+        query = (
+            self.db.query(VehicleSession)
+            .order_by(VehicleSession.in_time.desc())
+        )
+
+        if plate:
+            query = query.filter(VehicleSession.plate == plate)
+
+        if status:
+            query = query.filter(VehicleSession.status == status)
+
+        if skip:
+            query = query.offset(skip)
+
+        if limit:
+            query = query.limit(limit)
+
+        return query.all()
+
     def get_open_session( self, plate: str):
         return (
             self.db.query(VehicleSession)

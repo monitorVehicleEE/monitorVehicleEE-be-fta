@@ -4,7 +4,8 @@ from src.app.core.database import SessionLocal
 from src.app.repositories.vehicle_session_repo import VehicleSessionRepository
 from src.app.schemas.vehicle_session_schema import (
     VehicleSessionClose,
-    VehicleSessionCreate
+    VehicleSessionCreate,
+    VehicleSessionResponse
 )
 from src.app.services.vehicle_session_service import VehicleSessionService
 
@@ -25,6 +26,22 @@ def get_db():
 
 def get_service(db):
     return VehicleSessionService(VehicleSessionRepository(db))
+
+
+@router.get("", response_model=list[VehicleSessionResponse])
+def get_vehicle_sessions(
+    plate: str | None = None,
+    status: str | None = None,
+    skip: int = 0,
+    limit: int | None = None,
+    db=Depends(get_db)
+):
+    return get_service(db).find_all(
+        plate=plate,
+        status=status,
+        skip=skip,
+        limit=limit
+    )
 
 
 @router.get("/open/{plate}")
@@ -66,4 +83,3 @@ def close_vehicle_session(
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
