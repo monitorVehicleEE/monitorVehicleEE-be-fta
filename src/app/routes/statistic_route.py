@@ -84,7 +84,7 @@ def get_daily(
             )
             .filter(func.date(VehicleEvent.event_time) >= start_date)
             .filter(func.date(VehicleEvent.event_time) <= end_date)
-            .filter(VehicleEvent.status != "PENDING")
+            .filter(VehicleEvent.status != 0)
             .group_by(
                 month_expr,
                 VehicleEvent.vehicle_type_id
@@ -128,7 +128,7 @@ def get_daily(
         )
         .filter(func.date(VehicleEvent.event_time) >= start_date)
         .filter(func.date(VehicleEvent.event_time) <= end_date)
-        .filter(VehicleEvent.status != "PENDING")
+        .filter(VehicleEvent.status != 0)
         .group_by(
             func.date(VehicleEvent.event_time),
             VehicleEvent.vehicle_type_id
@@ -174,7 +174,7 @@ def get_by_type(
     if end_date is not None:
         query = query.filter(func.date(VehicleEvent.event_time) <= end_date)
 
-    query = query.filter(VehicleEvent.status != "PENDING")
+    query = query.filter(VehicleEvent.status != 0)
 
     rows = (
         query
@@ -203,7 +203,7 @@ def get_hourly(target_date: date | None = None, db=Depends(get_db)):
             func.count(VehicleEvent.id)
         )
         .filter(func.date(VehicleEvent.event_time) == target_date)
-        .filter(VehicleEvent.status != "PENDING")
+        .filter(VehicleEvent.status != 0)
         .group_by(func.extract("hour", VehicleEvent.event_time))
         .all()
     )
@@ -236,7 +236,7 @@ def _count_events_from(db, start_date: date):
     return (
         db.query(func.count(VehicleEvent.id))
         .filter(func.date(VehicleEvent.event_time) >= start_date)
-        .filter(VehicleEvent.status != "PENDING")
+        .filter(VehicleEvent.status != 0)
         .scalar()
     )
 
@@ -246,6 +246,6 @@ def _count_events_between(db, start_date: date, end_date: date):
         db.query(func.count(VehicleEvent.id))
         .filter(func.date(VehicleEvent.event_time) >= start_date)
         .filter(func.date(VehicleEvent.event_time) <= end_date)
-        .filter(VehicleEvent.status != "PENDING")
+        .filter(VehicleEvent.status != 0)
         .scalar()
     )

@@ -25,6 +25,7 @@ class AuthDependency:
             user_id = payload.get("user_id")
             username = payload.get("sub")
             user_type = payload.get("type")
+            role = payload.get("role")
 
             if user_id is None:
                 raise HTTPException(
@@ -35,7 +36,8 @@ class AuthDependency:
             return {
                 "user_id": user_id,
                 "username": username,
-                "type": user_type
+                "type": user_type,
+                "role": role
             }
         
         except JWTError:
@@ -43,3 +45,18 @@ class AuthDependency:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token is invalid or expired"
             )
+
+    @staticmethod
+    def require_admin(current_user=Depends(get_current_user)):
+        try:
+            role = int(current_user.get("role") or 0)
+        except (TypeError, ValueError):
+            role = 0
+
+        if role != 1:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Permission denied"
+            )
+
+        return current_user

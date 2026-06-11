@@ -49,5 +49,6 @@ class UserResponse(BaseModel):
     id      : int
     username: str
     email   : str
+    role    : int
     class Config:
         from_attributes = True

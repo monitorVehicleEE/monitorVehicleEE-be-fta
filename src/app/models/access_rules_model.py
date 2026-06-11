@@ -1,6 +1,7 @@
 from sqlalchemy import (
     BigInteger,
     Column,
+    Integer,
     String,
     TIMESTAMP
 )
@@ -22,7 +23,7 @@ class AccessRule(BaseEntity):
     )
 
     rule_type = Column(
-        String(20),
+        Integer,
         nullable=False
     )
 

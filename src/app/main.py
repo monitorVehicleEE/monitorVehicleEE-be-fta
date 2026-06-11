@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 
 from src.app.core.database import SessionLocal
 
-from src.app.repositories.user_repository import UserRepository
-from src.app.repositories.otp_repository import OTPRepository
+from src.app.repositories.user_repo import UserRepository
+from src.app.repositories.otp_repo import OTPRepository
 
 from src.app.services.auth_service import AuthService
 from src.app.services.otp_service import OTPService
@@ -17,6 +17,7 @@ from src.app.schemas.auth_schema import (
     LoginRequest,
     SendOTPRequest
 )
+from src.app.routes.alert_route import router as alert_router
 from src.app.routes.access_rule_route import router as access_rule_router
 from src.app.routes.camera_route import router as camera_router
 from src.app.routes.statistic_route import router as statistic_router
@@ -32,7 +33,7 @@ main = app
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://192.168.1.109:5173",
+        "http://10.60.229.211:5173",
         "http://localhost:5173",
         "http://localhost",
         "capacitor://localhost",
@@ -43,6 +44,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(access_rule_router)
+app.include_router(alert_router)
 app.include_router(camera_router)
 app.include_router(statistic_router)
 app.include_router(user_router)

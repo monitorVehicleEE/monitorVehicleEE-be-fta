@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.app.core.database import SessionLocal
+from src.app.dependencies.auth_dependency import AuthDependency
 from src.app.repositories.vehicle_type_repo import VehicleTypeRepository
 from src.app.schemas.vehicle_type_schema import VehicleTypeCreate
 from src.app.services.vehicle_type_service import VehicleTypeService
@@ -40,10 +41,10 @@ def get_vehicle_type(type_id: int, db=Depends(get_db)):
 @router.post("")
 def create_vehicle_type(
     request: VehicleTypeCreate,
+    current_user=Depends(AuthDependency.require_admin),
     db=Depends(get_db)
 ):
     try:
         return get_service(db).create(request)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-

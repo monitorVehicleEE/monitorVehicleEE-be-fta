@@ -47,8 +47,14 @@ class User(BaseEntity):
         nullable=False
     )
 
+    role = Column(
+        Integer,
+        default=0,
+        nullable=False
+    )
+
     def is_admin(self):
-        return self.type == 100
+        return self.role == 1
 
     def update_avatar(self, avatar_url: str):
         self.avatar = avatar_url

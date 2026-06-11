@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from src.app.dependencies.auth_dependency import AuthDependency
 
-from src.app.repositories.user_repository import UserRepository
+from src.app.repositories.user_repo import UserRepository
 
 from src.app.services.user_service import UserService
 

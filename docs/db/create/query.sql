@@ -1,191 +1,268 @@
--- CREATE TABLE users (
---     id BIGSERIAL PRIMARY KEY,
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
 
---     code VARCHAR(50),
+    code VARCHAR(50),
 
---     status INT DEFAULT 0,
---     -- 0: New
---     -- 1: Active
---     -- 2: Suspended
---     -- 10: Deleted
+    status INT DEFAULT 0,
+    -- 0: New
+    -- 1: Active
+    -- 2: Suspended
+    -- 10: Deleted
 
---     type INT DEFAULT 200,
---     -- 100: Staff
---     -- 200: User
---     -- 300: Guest
+    type INT DEFAULT 200,
+    -- 100: Staff
+    -- 200: User
+    -- 300: Guest
 
---     email VARCHAR(250),
---     username VARCHAR(250),
---     password VARCHAR(250),
---     avatar VARCHAR(250),
+    role INT DEFAULT 0,
+    -- 0: Default
+    -- 1: Admin
 
---     fullname VARCHAR(100),
+    email VARCHAR(250),
+    username VARCHAR(250),
+    password VARCHAR(250),
+    avatar VARCHAR(250),
 
---     date_new TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---     date_mod TIMESTAMP
--- );
+    fullname VARCHAR(100),
 
--- CREATE TABLE otps (
---     id BIGSERIAL PRIMARY KEY,
+    date_new TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    date_mod TIMESTAMP
+);
 
---     email VARCHAR(250) NOT NULL,
+CREATE TABLE otps (
+    id BIGSERIAL PRIMARY KEY,
 
---     otp_code VARCHAR(6) NOT NULL,
+    email VARCHAR(250) NOT NULL,
 
---     is_used INTEGER DEFAULT 0,
+    otp_code VARCHAR(6) NOT NULL,
 
---     expire_at TIMESTAMP NOT NULL,
+    is_used INTEGER DEFAULT 0,
 
---     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
--- );
--- CREATE INDEX idx_otps_email ON otps(email);
--- CREATE TABLE cameras (
---     id BIGSERIAL PRIMARY KEY,
+    expire_at TIMESTAMP NOT NULL,
 
---     code VARCHAR(50) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_otps_email ON otps(email);
+CREATE TABLE cameras (
+    id BIGSERIAL PRIMARY KEY,
 
---     name VARCHAR(100) NOT NULL,
+    code VARCHAR(50) NOT NULL UNIQUE,
 
---     location VARCHAR(250),
+    name VARCHAR(100) NOT NULL,
 
---     camera_role INTEGER NOT NULL,
+    location VARCHAR(250),
 
---     source_type VARCHAR(20) NOT NULL,
+    camera_role INTEGER NOT NULL,
 
---     source_path VARCHAR(500) NOT NULL,
+    source_type VARCHAR(20) NOT NULL,
 
---     last_active_time TIMESTAMP,
+    source_path VARCHAR(500) NOT NULL,
 
---     status INTEGER DEFAULT 1,
+    last_active_time TIMESTAMP,
 
---     date_new TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status INTEGER DEFAULT 1,
 
---     date_mod TIMESTAMP
--- );
--- CREATE TABLE vehicle_types (
---     id SERIAL PRIMARY KEY,
+    date_new TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
---     code VARCHAR(50) UNIQUE NOT NULL,
+    date_mod TIMESTAMP
+);
+CREATE TABLE vehicle_types (
+    id SERIAL PRIMARY KEY,
 
---     name VARCHAR(100) NOT NULL,
+    code VARCHAR(50) UNIQUE NOT NULL,
 
---     description VARCHAR(255),
+    name VARCHAR(100) NOT NULL,
 
---     status INTEGER DEFAULT 1
--- );
+    description VARCHAR(255),
 
--- CREATE TABLE vehicles (
---     id BIGSERIAL PRIMARY KEY,
+    status INTEGER DEFAULT 1,
 
---     plate VARCHAR(20) NOT NULL UNIQUE,
+    date_new TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
---     type VARCHAR(50),
+    date_mod TIMESTAMP
+);
 
---     is_internal BOOLEAN DEFAULT FALSE,
+CREATE TABLE vehicles (
+    id BIGSERIAL PRIMARY KEY,
 
---     status INTEGER DEFAULT 1,
+    plate VARCHAR(20) NOT NULL UNIQUE,
 
---     date_new TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    owner_name VARCHAR(100),
 
---     date_mod TIMESTAMP
--- );
+    owner_phone VARCHAR(20),
 
--- CREATE TABLE access_rules (
---     id BIGSERIAL PRIMARY KEY,
+    owner_cccd VARCHAR(20),
 
---     plate VARCHAR(20) NOT NULL,
+    owner_address VARCHAR(255),
 
---     rule_type VARCHAR(20) NOT NULL,
+    vehicle_type_id INTEGER,
 
---     description VARCHAR(250),
+    is_internal BOOLEAN DEFAULT FALSE,
 
---     valid_from TIMESTAMP,
+    status INTEGER DEFAULT 1,
 
---     valid_to TIMESTAMP,
+    date_new TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
---     status INTEGER DEFAULT 1,
+    date_mod TIMESTAMP,
 
---     date_new TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_vehicle_vehicle_type
+        FOREIGN KEY (vehicle_type_id)
+        REFERENCES vehicle_types(id)
+);
 
---     date_mod TIMESTAMP
--- );
+CREATE TABLE access_rules (
+    id BIGSERIAL PRIMARY KEY,
 
--- CREATE INDEX idx_access_rules_plate
--- ON access_rules(plate);
+    plate VARCHAR(20) NOT NULL,
 
+    rule_type INTEGER NOT NULL,
+    -- 0: WHITELIST
+    -- 1: BLACKLIST
 
--- CREATE TABLE vehicle_events (
---     id BIGSERIAL PRIMARY KEY,
+    description VARCHAR(250),
 
---     camera_id BIGINT NOT NULL,
---     plate VARCHAR(20),
+    valid_from TIMESTAMP,
 
---     event_type VARCHAR(20) NOT NULL, -- IN, OUT, DETECTED
---     vehicle_type_id BIGINT,
+    valid_to TIMESTAMP,
 
---     vehicle_confidence NUMERIC(5,2),
---     plate_confidence NUMERIC(5,2),
+    status INTEGER DEFAULT 1,
 
---     image_path VARCHAR(500),
---     plate_image_path VARCHAR(500),
+    date_new TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
---     bbox JSONB,
+    date_mod TIMESTAMP
+);
 
---     status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
---     event_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
---     date_new TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+CREATE INDEX idx_access_rules_plate
+ON access_rules(plate);
 
---     CONSTRAINT fk_vehicle_event_camera
---         FOREIGN KEY (camera_id)
---         REFERENCES cameras(id),
 
--- 	   CONSTRAINT fk_vehicle_event_vehicle_type
---     	   FOREIGN KEY (vehicle_type_id)
---         REFERENCES vehicle_types(id)
--- );
+CREATE TABLE vehicle_events (
+    id BIGSERIAL PRIMARY KEY,
 
+    camera_id BIGINT NOT NULL,
+    plate VARCHAR(20),
 
--- CREATE INDEX idx_vehicle_events_plate
--- ON vehicle_events(plate);
+    event_type VARCHAR(20) NOT NULL, -- IN, OUT, DETECTED
+    vehicle_type_id BIGINT,
 
--- CREATE TABLE vehicle_sessions (
---     id BIGSERIAL PRIMARY KEY,
+    vehicle_confidence NUMERIC(5,2),
+    plate_confidence NUMERIC(5,2),
 
---     plate VARCHAR(20),
+    image_path VARCHAR(500),
+    plate_image_path VARCHAR(500),
 
---     in_event_id BIGINT,
+    bbox JSONB,
 
---     out_event_id BIGINT,
+    status INTEGER NOT NULL DEFAULT 0,
+    -- 0: Pending
+    -- 1: Auto approved
+    -- 2: Manual
+    event_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date_new TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
---     in_time TIMESTAMP NOT NULL,
+    CONSTRAINT fk_vehicle_event_camera
+        FOREIGN KEY (camera_id)
+        REFERENCES cameras(id),
 
---     out_time TIMESTAMP,
+	   CONSTRAINT fk_vehicle_event_vehicle_type
+    	   FOREIGN KEY (vehicle_type_id)
+        REFERENCES vehicle_types(id)
+);
 
---     duration_seconds INTEGER,
 
---     in_camera_id BIGINT NOT NULL,
+CREATE INDEX idx_vehicle_events_plate
+ON vehicle_events(plate);
 
---     out_camera_id BIGINT,
+CREATE TABLE alerts (
+    id BIGSERIAL PRIMARY KEY,
 
---     status VARCHAR(20) NOT NULL,
+    vehicle_event_id BIGINT NOT NULL,
 
---     date_new TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    access_rule_id BIGINT,
 
---     date_mod TIMESTAMP,
+    plate VARCHAR(20) NOT NULL,
 
---     CONSTRAINT fk_session_in_event
---         FOREIGN KEY (in_event_id)
---         REFERENCES vehicle_events(id),
+    camera_id BIGINT NOT NULL,
 
---     CONSTRAINT fk_session_out_event
---         FOREIGN KEY (out_event_id)
---         REFERENCES vehicle_events(id),
+    alert_type VARCHAR(50) NOT NULL,
 
---     CONSTRAINT fk_session_in_camera
---         FOREIGN KEY (in_camera_id)
---         REFERENCES cameras(id),
+    severity VARCHAR(20) NOT NULL DEFAULT 'high',
 
---     CONSTRAINT fk_session_out_camera
---         FOREIGN KEY (out_camera_id)
---         REFERENCES cameras(id)
--- );
+    message VARCHAR(500) NOT NULL,
+
+    image_path VARCHAR(500),
+
+    plate_image_path VARCHAR(500),
+
+    is_resolved BOOLEAN NOT NULL DEFAULT FALSE,
+
+    resolved_by VARCHAR(100),
+
+    resolved_at TIMESTAMP,
+
+    status INTEGER DEFAULT 1,
+
+    date_new TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    date_mod TIMESTAMP,
+
+    CONSTRAINT fk_alert_vehicle_event
+        FOREIGN KEY (vehicle_event_id)
+        REFERENCES vehicle_events(id),
+
+    CONSTRAINT fk_alert_access_rule
+        FOREIGN KEY (access_rule_id)
+        REFERENCES access_rules(id),
+
+    CONSTRAINT fk_alert_camera
+        FOREIGN KEY (camera_id)
+        REFERENCES cameras(id)
+);
+
+CREATE INDEX idx_alerts_plate
+ON alerts(plate);
+
+CREATE INDEX idx_alerts_is_resolved
+ON alerts(is_resolved);
+
+CREATE TABLE vehicle_sessions (
+    id BIGSERIAL PRIMARY KEY,
+
+    plate VARCHAR(20),
+
+    in_event_id BIGINT,
+
+    out_event_id BIGINT,
+
+    in_time TIMESTAMP NOT NULL,
+
+    out_time TIMESTAMP,
+
+    duration_seconds INTEGER,
+
+    in_camera_id BIGINT NOT NULL,
+
+    out_camera_id BIGINT,
+
+    status VARCHAR(20) NOT NULL,
+
+    date_new TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    date_mod TIMESTAMP,
+
+    CONSTRAINT fk_session_in_event
+        FOREIGN KEY (in_event_id)
+        REFERENCES vehicle_events(id),
+
+    CONSTRAINT fk_session_out_event
+        FOREIGN KEY (out_event_id)
+        REFERENCES vehicle_events(id),
+
+    CONSTRAINT fk_session_in_camera
+        FOREIGN KEY (in_camera_id)
+        REFERENCES cameras(id),
+
+    CONSTRAINT fk_session_out_camera
+        FOREIGN KEY (out_camera_id)
+        REFERENCES cameras(id)
+);

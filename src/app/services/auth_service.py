@@ -3,8 +3,8 @@
 from src.app.core.security import SecurityService
 from src.app.models.otp_model import OTP
 from src.app.models.user_model import User
-from src.app.repositories.otp_repository import OTPRepository
-from src.app.repositories.user_repository import UserRepository
+from src.app.repositories.otp_repo import OTPRepository
+from src.app.repositories.user_repo import UserRepository
 from src.app.services.email_service import EmailService
 from src.app.services.otp_service import OTPService
 
@@ -87,7 +87,8 @@ class AuthService:
             password=hashed_password,
             fullname=request.fullname,
             status=1,
-            type=200
+            type=200,
+            role=0
         )
 
         created_user = self.user_repository.create(user)
@@ -117,7 +118,8 @@ class AuthService:
         access_token = SecurityService.create_access_token({
             "sub": user.username,
             "user_id": user.id,
-            "type": user.type
+            "type": user.type,
+            "role": user.role
         })
 
         return {
@@ -130,7 +132,8 @@ class AuthService:
                 "email": user.email,
                 "fullname": user.fullname,
                 "avatar": user.avatar,
-                "type": user.type
+                "type": user.type,
+                "role": user.role
             }
         }
 

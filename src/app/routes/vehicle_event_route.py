@@ -6,6 +6,7 @@ from src.app.core.database import SessionLocal
 from src.app.repositories.vehicle_event_repo import VehicleEventRepository
 from src.app.schemas.vehicle_event_schema import (
     VehicleEventCreate,
+    VehicleEventPage,
     VehicleEventResponse,
     VehicleEventReview,
     VehicleEventUpdate
@@ -31,19 +32,19 @@ def get_service(db):
     return VehicleEventService(VehicleEventRepository(db))
 
 
-@router.get("", response_model=list[VehicleEventResponse])
+@router.get("", response_model=VehicleEventPage)
 def get_vehicle_events(
     camera_id: int | None = None,
-    vehicle_type: str | None = None,
+    vehicle_type_id: int | None = None,
     start_date: datetime | None = None,
     end_date: datetime | None = None,
     skip: int = 0,
     limit: int | None = None,
     db=Depends(get_db)
 ):
-    return get_service(db).find_history(
+    return get_service(db).find_history_page(
         camera_id=camera_id,
-        vehicle_type=vehicle_type,
+        vehicle_type_id=vehicle_type_id,
         start_date=start_date,
         end_date=end_date,
         skip=skip,

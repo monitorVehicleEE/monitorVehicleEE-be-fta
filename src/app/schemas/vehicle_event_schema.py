@@ -1,10 +1,22 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, StrictInt, field_validator
 
 
-class VehicleEventCreate(BaseModel):
+class VehicleEventStatusMixin(BaseModel):
+    status: StrictInt | None = None
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, value):
+        if value is None or value in {0, 1, 2}:
+            return value
+
+        raise ValueError("Invalid vehicle event status")
+
+
+class VehicleEventCreate(VehicleEventStatusMixin):
     camera_id: int
     plate: str | None = None
     event_type: str
@@ -14,20 +26,17 @@ class VehicleEventCreate(BaseModel):
     image_path: str | None = None
     plate_image_path: str | None = None
     bbox: dict[str, Any] | None = None
-    status: str | None = None
 
 
-class VehicleEventReview(BaseModel):
+class VehicleEventReview(VehicleEventStatusMixin):
     plate: str | None = None
     vehicle_type_id: int | None = None
-    status: str | None = None
     reject_reason: str | None = None
 
 
-class VehicleEventUpdate(BaseModel):
+class VehicleEventUpdate(VehicleEventStatusMixin):
     plate: str | None = None
     vehicle_type_id: int | None = None
-    status: str | None = None
 
 
 class VehicleEventResponse(VehicleEventCreate):
@@ -36,3 +45,10 @@ class VehicleEventResponse(VehicleEventCreate):
     model_config = ConfigDict(
         from_attributes=True
     )
+
+
+class VehicleEventPage(BaseModel):
+    items: list[VehicleEventResponse]
+    total: int
+    skip: int = 0
+    limit: int | None = None

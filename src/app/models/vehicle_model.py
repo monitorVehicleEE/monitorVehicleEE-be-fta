@@ -2,6 +2,8 @@ from sqlalchemy import (
     BigInteger,
     Boolean,
     Column,
+    ForeignKey,
+    Integer,
     String
 )
 
@@ -23,8 +25,25 @@ class Vehicle(BaseEntity):
         nullable=False
     )
 
-    type = Column(
-        String(50)
+    owner_name = Column(
+        String(100)
+    )
+
+    owner_phone = Column(
+        String(20)
+    )
+
+    owner_cccd = Column(
+        String(20)
+    )
+
+    owner_address = Column(
+        String(255)
+    )
+
+    vehicle_type_id = Column(
+        Integer,
+        ForeignKey("vehicle_types.id")
     )
 
     is_internal = Column(
@@ -34,5 +53,4 @@ class Vehicle(BaseEntity):
 
     @property
     def vehicle_type(self):
-        return self.type
-
+        return self.vehicle_type_id

@@ -63,8 +63,8 @@ class VehicleEvent(Base):
     )
 
     status = Column(
-        String(30),
-        server_default="PENDING",
+        Integer,
+        server_default="0",
         nullable=False
     )
 
